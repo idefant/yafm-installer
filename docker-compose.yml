@@ -1,0 +1,46 @@
+version: "3.8"
+
+networks:
+  default:
+    name: traefik
+    external: true
+
+services:
+  yafm-frontend:
+    container_name: yafm-frontend
+    build: yafm
+    env_file:
+      - yafm/.env
+    restart: unless-stopped
+    ports: [80]
+    labels:
+      - traefik.http.services.yafm-frontend.loadbalancer.server.port=80
+      - traefik.http.routers.yafm-frontend.rule=Host(`YAFM-FRONTEND.com`)
+      - traefik.http.routers.yafm-frontend.tls.certresolver=myresolver
+      - traefik.http.routers.yafm-frontend.entrypoints=websecure
+
+  yafm-backend:
+    container_name: yafm-backend
+    build: yafm-api
+    env_file:
+      - yafm-api/.env
+    restart: unless-stopped
+    ports: [8080]
+    labels:
+      - traefik.http.services.yafm-backend.loadbalancer.server.port=8080
+      - traefik.http.routers.yafm-backend.rule=Host(`YAFM-BACKEND.com`)
+      - traefik.http.routers.yafm-backend.tls.certresolver=myresolver
+      - traefik.http.routers.yafm-backend.entrypoints=websecure
+
+  exrates:
+    container_name: exrates
+    build: exrates-api
+    env_file:
+      - exrates-api/.env
+    restart: unless-stopped
+    ports: [3000]
+    labels:
+      - traefik.http.services.exrates.loadbalancer.server.port=3000
+      - traefik.http.routers.exrates.rule=Host(`EXRATES-BACKEND.com`)
+      - traefik.http.routers.exrates.tls.certresolver=myresolver
+      - traefik.http.routers.exrates.entrypoints=websecure
